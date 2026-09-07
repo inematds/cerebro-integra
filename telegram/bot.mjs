@@ -184,7 +184,7 @@ export async function processarMensagem(mensagem, deps) {
           data: dataMensagem,
           frontmatter: { origem: encaminhada ? 'telegram (encaminhada)' : 'telegram' },
         });
-        return r.criado ? `Fonte gravada: ${r.caminho}` : `Já existia uma fonte com esse nome hoje: ${r.caminho}. Nada foi sobrescrito.`;
+        return r.criado ? `Fonte gravada: ${r.caminho}` : `Já existia uma fonte com esse nome nessa data: ${r.caminho}. Nada foi sobrescrito.`;
       }
 
       case 'rotina': {
