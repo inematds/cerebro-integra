@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cerebro-integra — o segundo cérebro fora do terminal</title>
+<meta name="description" content="Kit de integração do segundo cérebro (astra-2cerebro) com Telegram, API HTTP local, importadores de JSON/CSV/pasta, n8n e voz. Node.js, sem dependências.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0c10; --bg2:#14141b; --card:#16161e; --line:#272730;
+    --txt:#e9e9ee; --mut:#9a9aa6; --amb:#E2A23B; --amb2:#f0c070; --sky:#38bdf8; --pro:#cbd5e1;
+    color-scheme:dark;
+  }
+  body.light{
+    --bg:#f6f7f9; --bg2:#eceef2; --card:#ffffff; --line:#e1e3ea;
+    --txt:#1a1a22; --mut:#5b5b68; --amb:#b9791d; --amb2:#a16207; --sky:#0369a1; --pro:#b45309;
+    color-scheme:light;
+  }
+  body.light .hero .glow{opacity:.5}
+  body.light pre{background:#0e0e14;color:#d6d6e0}
+  body.light pre .c{color:#8a8a98}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.65 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  h1,h2,h3{font-family:Sora,sans-serif;line-height:1.15;margin:0}
+  a{color:var(--amb);text-decoration:none}
+  code,pre{font-family:"JetBrains Mono",monospace}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 22px}
+  .mut{color:var(--mut)} .amb{color:var(--amb)}
+  .chip{display:inline-block;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--amb);font-weight:600;font-family:Sora}
+  nav{position:sticky;top:0;z-index:30;backdrop-filter:blur(12px);background:rgba(12,12,16,.78);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;gap:22px;height:60px}
+  nav .brand{display:flex;align-items:center;gap:8px;font-family:Sora;font-weight:800;letter-spacing:-.02em;color:var(--amb)}
+  nav .brand .emoji{font-size:1.25rem}
+  nav .sep{color:var(--mut);opacity:.45}
+  nav .inema{color:var(--sky);font-weight:600;font-size:.88rem;font-family:Sora}
+  nav .inema:hover{filter:brightness(1.15)}
+  nav .pro{color:var(--pro);font-weight:600;font-size:.88rem;font-family:Sora}
+  nav .pro:hover{filter:brightness(1.15)}
+  nav .clubpro{display:inline-flex;align-items:center;gap:6px}
+  nav .links{margin-left:auto;display:flex;align-items:center;gap:20px;font-size:.92rem}
+  nav .links a.sec{color:var(--mut)} nav .links a.sec:hover{color:var(--txt)}
+  .tgl{background:var(--bg2);border:1px solid var(--line);color:var(--txt);width:38px;height:38px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:1.05rem}
+  .tgl:hover{border-color:var(--amb)}
+  .btn{display:inline-block;background:var(--amb);color:#1a1206;font-weight:600;padding:.6em 1.05em;border-radius:10px;font-family:Sora}
+  .btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
+  @media(max-width:760px){nav .links a.sec{display:none}}
+  .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+  .hero .glow{position:absolute;inset:-40% -20% auto auto;width:70%;height:600px;background:radial-gradient(closest-side,rgba(226,162,59,.22),transparent 70%);pointer-events:none}
+  .hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:74px 22px}
+  .hero h1{font-size:clamp(2.2rem,5vw,3.5rem);font-weight:800;letter-spacing:-.025em}
+  .hero p.lead{font-size:1.18rem;color:var(--mut);margin:1.1em 0 1.6em;max-width:34ch}
+  .hero .cta{display:flex;gap:12px;flex-wrap:wrap}
+  .hero figure{margin:0;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 80px -30px #000}
+  .hero figure img{width:100%;display:block}
+  @media(max-width:780px){.hero .wrap{grid-template-columns:1fr;padding:48px 22px}}
+  section{padding:62px 0;border-bottom:1px solid var(--line)}
+  section h2{font-size:clamp(1.5rem,3.4vw,2.1rem);font-weight:800;letter-spacing:-.02em}
+  section .sub{color:var(--mut);margin:.6em 0 2em;max-width:62ch}
+  .grid{display:grid;gap:16px}
+  .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)} .g2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:820px){.g3,.g4{grid-template-columns:1fr 1fr}}
+  @media(max-width:540px){.g2,.g3,.g4{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .card h3{font-size:1.05rem;margin-bottom:.4em}
+  .card p{color:var(--mut);font-size:.92rem;margin:0}
+  .num{display:inline-flex;width:30px;height:30px;align-items:center;justify-content:center;border-radius:8px;background:rgba(226,162,59,.14);color:var(--amb);font-family:Sora;font-weight:800;font-size:.9rem;margin-bottom:.7em}
+  .flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+  .flow span{background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:.45em .9em;font-size:.85rem;font-family:Sora;font-weight:600}
+  .flow .arr{color:var(--amb);border:none;background:none;padding:0 .1em}
+  pre{background:#0a0a0e;border:1px solid var(--line);border-radius:12px;padding:16px 18px;overflow:auto;font-size:.86rem;line-height:1.6;color:#d6d6e0}
+  pre .c{color:#6f6f7c} pre .k{color:var(--amb2)} pre .s{color:#9ece6a}
+  .step{display:grid;grid-template-columns:46px 1fr;gap:16px;margin-bottom:26px}
+  .step .b{width:46px;height:46px;border-radius:12px;background:var(--amb);color:#1a1206;font-family:Sora;font-weight:800;font-size:1.25rem;display:flex;align-items:center;justify-content:center}
+  .step h3{font-size:1.12rem;margin-bottom:.3em}
+  .step p{color:var(--mut);margin:.2em 0 .7em}
+  .ex{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:680px){.ex{grid-template-columns:1fr}}
+  .ex figure{margin:0;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+  .ex figure img{width:100%;display:block}
+  .ex figcaption{padding:12px 14px;font-size:.88rem;color:var(--mut);background:var(--card)}
+  .phase{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
+  .phase:last-child{border:none}
+  .phase .tag{flex:0 0 92px;font-family:Sora;font-weight:800;color:var(--amb)}
+  .phase .d strong{display:block;margin-bottom:.2em}
+  .phase .d span{color:var(--mut);font-size:.92rem}
+  footer{padding:46px 0;text-align:center;color:var(--mut);font-size:.9rem}
+  .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:.3em .8em;font-size:.78rem;color:var(--mut);margin:0 4px}
+  .card pre{margin:.8em 0 0}
+  table{width:100%;border-collapse:collapse;font-size:.9rem}
+  th,td{text-align:left;padding:.55em .7em;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--amb);font-family:Sora;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase}
+  td code{background:var(--bg2);padding:.1em .4em;border-radius:6px;font-size:.84em}
+  .tabela{overflow-x:auto}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <a class="brand" href="#top"><span class="emoji">🔌</span> cerebro-integra</a>
+  <span class="sep">|</span>
+  <span class="clubpro">
+    <a class="inema" href="https://inema.club" target="_blank" rel="noopener">INEMA.CLUB</a>
+    <span class="sep">-</span>
+    <a class="pro" href="https://inema.pro" target="_blank" rel="noopener">PRO</a>
+  </span>
+  <div class="links">
+    <a class="sec" href="#oque">O que é</a>
+    <a class="sec" href="#fluxo">Como funciona</a>
+    <a class="sec" href="#guia">Guia de uso</a>
+    <a class="sec" href="#exemplos">Exemplos</a>
+    <a class="sec" href="#roadmap">Roadmap</a>
+    <button class="tgl" id="themeToggle" aria-label="Alternar tema" title="Alternar tema">🌙</button>
+    <a class="btn" href="https://github.com/inematds/cerebro-integra" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</div></nav>
+
+<header class="hero" id="top">
+  <div class="glow"></div>
+  <div class="wrap">
+    <div>
+      <span class="chip">Kit de integração · astra-2cerebro</span>
+      <h1>O segundo cérebro <span class="amb">fora do terminal</span></h1>
+      <p class="lead">Liga a sua pasta de Markdown a um bot de Telegram, a um site via API local, a bancos e planilhas, ao n8n e à voz. Node.js, zero dependências.</p>
+      <div class="cta">
+        <a class="btn" href="#guia">Começar o guia</a>
+        <a class="btn ghost" href="https://github.com/inematds/cerebro-integra" target="_blank" rel="noopener">Ver no GitHub</a>
+      </div>
+    </div>
+    <figure><img src="assets/hero.jpg" alt="Uma pasta de anotações ligada por fios de luz a um celular, monitores e microfone"></figure>
+  </div>
+</header>
+
+<section id="oque"><div class="wrap">
+  <span class="chip">O que é</span>
+  <h2>Uma ponte, feita uma vez, do jeito certo</h2>
+  <p class="sub">O cérebro criado pelo <a href="https://github.com/inematds/astra-2cerebro" target="_blank" rel="noopener">astra-2cerebro</a> funciona muito bem no terminal. Mas a pergunta chega pelo Telegram, o site precisa do catálogo que está na wiki, o banco gera registros toda noite. O cerebro-integra é a camada que traduz cada canal para leituras e escritas seguras nos arquivos do cérebro.</p>
+  <div class="grid g3">
+    <div class="card"><h3>🔌 Cinco adaptadores</h3><p>API HTTP local, bot de Telegram, importadores (JSON, CSV, pasta, exportar wiki), fluxo n8n e ponte de voz. Todos falam com um núcleo só, <code>lib/cerebro.mjs</code>.</p></div>
+    <div class="card"><h3>🔒 Seguro por padrão</h3><p>API só em <code>127.0.0.1</code>, token opcional, escrita desligada até você ligar, chats do Telegram em lista fechada, bloqueio de path traversal, token nunca impresso.</p></div>
+    <div class="card"><h3>📦 Zero dependências</h3><p>Só <code>node:http</code>, <code>fetch</code> e <code>fs</code>. Sem <code>npm install</code>. Clona, copia o <code>.env</code>, roda. 73 testes com <code>node --test</code>.</p></div>
+  </div>
+</div></section>
+
+<section id="fluxo"><div class="wrap">
+  <span class="chip">Como funciona</span>
+  <h2>Canal → adaptador → núcleo → arquivos .md</h2>
+  <p class="sub">Nenhum adaptador toca em arquivo diretamente. O núcleo sabe onde cada coisa vive no cérebro (<code>fontes/</code>, <code>decisoes/registro.md</code>, <code>rotinas/registro.md</code>, <code>wiki/</code>) e só escreve anexando: nada é sobrescrito.</p>
+  <div class="flow">
+    <span>Telegram / site / cron / n8n / voz</span><span class="arr">→</span>
+    <span>adaptador</span><span class="arr">→</span>
+    <span>lib/cerebro.mjs</span><span class="arr">→</span>
+    <span>contexto/ wiki/ fontes/ decisoes/ rotinas/</span>
+  </div>
+  <div class="grid g3" style="margin-top:28px">
+    <div class="card"><h3>📖 Leitura</h3><p><code>GET /buscar</code>, <code>/contexto</code>, <code>/prioridades</code>, <code>/pagina</code>, <code>/projetos</code>, <code>/conexoes</code>. Busca sem acento, todos os termos obrigatórios, bônus para título.</p></div>
+    <div class="card"><h3>✍️ Escrita (opt-in)</h3><p><code>POST /decisao</code>, <code>/fonte</code>, <code>/rotina/execucao</code> e os comandos <code>/decisao</code>, <code>/fonte</code>, <code>/rotina</code> do bot. Só com <code>CEREBRO_ESCRITA=1</code>.</p></div>
+    <div class="card"><h3>🔁 Importação idempotente</h3><p>Uma nota por item em <code>fontes/AAAA-MM-DD-slug.md</code>. Nome determinístico: rodar toda noite não duplica. Data vem do item ou do arquivo, nunca de "hoje".</p></div>
+  </div>
+</div></section>
+
+<section id="pre"><div class="wrap">
+  <span class="chip">Pré-requisitos</span>
+  <h2>Três coisas, nenhuma difícil</h2>
+  <p class="sub">O bot precisa de um token do BotFather; a voz precisa dos comandos de STT/TTS que você escolher. Nada é instalado por você além do Node.</p>
+  <div class="grid g3">
+    <div class="card"><h3>Node.js 20+</h3><p>Se você usa Claude Code ou Codex, já tem.</p><pre><span class="k">node</span> --version   <span class="c"># v20 ou superior</span></pre></div>
+    <div class="card"><h3>Um cérebro</h3><p>Pasta com <code>AGENTS.md</code>/<code>CLAUDE.md</code>, <code>contexto/</code> e <code>fontes/</code>, criada pelo astra-2cerebro. Para experimentar, <code>test/fixture/</code> é um cérebro mínimo.</p><pre><span class="k">ls</span> ~/meu-cerebro   <span class="c"># AGENTS.md contexto/ fontes/ wiki/ ...</span></pre></div>
+    <div class="card"><h3>Token do bot (opcional)</h3><p>No Telegram, <code>@BotFather</code> → <code>/newbot</code>. Guarde o token no <code>.env</code>. Descubra o ID do seu chat com <code>getUpdates</code>.</p><pre><span class="c"># .env</span>
+TELEGRAM_TOKEN=<span class="s">123456:ABC...</span>
+TELEGRAM_CHATS=<span class="s">123456789</span></pre></div>
+  </div>
+</div></section>
+
+<section id="guia"><div class="wrap">
+  <span class="chip">Guia de uso · passo a passo</span>
+  <h2>Do clone à primeira integração</h2>
+  <p class="sub">Todos os comandos são reais e estão no repositório. A documentação completa (API rota a rota, Telegram, importadores, n8n, voz, segurança e três receitas) está em <code>docs/</code>.</p>
+
+  <div class="step"><div class="b">1</div><div>
+    <h3>Clonar e apontar para o cérebro</h3>
+    <p>Sem <code>npm install</code>. O <code>.env</code> é lido da pasta atual, sem sobrescrever variáveis já definidas.</p>
+<pre><span class="k">git clone</span> <span class="s">https://github.com/inematds/cerebro-integra.git</span>
+<span class="k">cd</span> cerebro-integra
+<span class="k">cp</span> .env.exemplo .env      <span class="c"># edite CEREBRO_DIR=/caminho/para/meu-cerebro</span>
+<span class="k">npm test</span>                  <span class="c"># 73 testes, usa uma cópia de test/fixture/, não toca no seu cérebro</span></pre>
+  </div></div>
+
+  <div class="step"><div class="b">2</div><div>
+    <h3>Subir a API local</h3>
+    <p>Escuta só em <code>127.0.0.1:4650</code>. Com <code>CEREBRO_TOKEN</code>, toda rota (menos <code>/saude</code>) exige <code>Authorization: Bearer</code>.</p>
+<pre><span class="k">npm run api</span>
+<span class="c"># [api] cérebro: /home/usuario/meu-cerebro</span>
+<span class="c"># [api] escutando em http://127.0.0.1:4650</span>
+<span class="c"># [api] token: exigido · escrita: desligada · cors: desligado</span>
+
+<span class="k">curl</span> <span class="s">'http://127.0.0.1:4650/buscar?q=catalogo&amp;limite=3'</span> -H <span class="s">"Authorization: Bearer $CEREBRO_TOKEN"</span>
+<span class="k">curl</span> <span class="s">http://127.0.0.1:4650/prioridades</span> -H <span class="s">"Authorization: Bearer $CEREBRO_TOKEN"</span></pre>
+  </div></div>
+
+  <div class="step"><div class="b">3</div><div>
+    <h3>Ligar a escrita (quando quiser)</h3>
+    <p>Por padrão a API e o bot só leem. Escrita é sempre anexar: fonte existente não é sobrescrita, registros só ganham linhas.</p>
+<pre><span class="k">CEREBRO_ESCRITA=1 npm run api</span>
+
+<span class="k">curl</span> -X POST <span class="s">http://127.0.0.1:4650/decisao</span> -H <span class="s">"Authorization: Bearer $CEREBRO_TOKEN"</span> \
+  -H <span class="s">'Content-Type: application/json'</span> \
+  -d <span class="s">'{"titulo":"Usar a API no site","decisao":"O site consulta /buscar.","porque":"Uma fonte só."}'</span>
+<span class="c"># → anexa "## 2026-09-07: Usar a API no site" em decisoes/registro.md</span></pre>
+  </div></div>
+
+  <div class="step"><div class="b">4</div><div>
+    <h3>Subir o bot de Telegram</h3>
+    <p>Long polling: sem porta aberta, sem HTTPS. Só responde aos chats em <code>TELEGRAM_CHATS</code>; sem a lista, não sobe.</p>
+<pre><span class="k">npm run bot</span>
+<span class="c"># [bot] @meu_cerebro_bot · cérebro: /home/usuario/meu-cerebro</span>
+<span class="c"># [bot] chats permitidos: 1 · escrita: desligada · responder: busca</span>
+
+<span class="c"># no chat:</span>
+/buscar catálogo prazo
+/prioridades
+/decisao Usar API | O site consulta a API | Uma fonte só
+/rotina importar-catalogo ok 12 notas
+<span class="c"># encaminhar qualquer mensagem ao bot grava uma nota em fontes/</span></pre>
+  </div></div>
+
+  <div class="step"><div class="b">5</div><div>
+    <h3>Texto livre com IA (opcional)</h3>
+    <p>Com <code>RESPONDER_CMD</code>, o bot e a voz rodam o comando na pasta do cérebro com a pergunta na entrada padrão. Sem ele, texto livre devolve a busca.</p>
+<pre><span class="c"># .env</span>
+RESPONDER_CMD=<span class="s">claude -p</span>     <span class="c"># roda em CEREBRO_DIR, lê o CLAUDE.md automaticamente</span></pre>
+  </div></div>
+
+  <div class="step"><div class="b">6</div><div>
+    <h3>Importar um catálogo ou planilha</h3>
+    <p>Mapa de campos em JSON. <code>--simular</code> lista o que seria criado. Rodar de novo pula o que já existe.</p>
+<pre><span class="c"># mapas/catalogo.json</span>
+{ <span class="s">"titulo"</span>: <span class="s">"nome"</span>, <span class="s">"data"</span>: <span class="s">"criado_em"</span>, <span class="s">"id"</span>: <span class="s">"sku"</span>, <span class="s">"prefixo"</span>: <span class="s">"catalogo"</span>,
+  <span class="s">"corpo"</span>: [<span class="s">"descricao"</span>], <span class="s">"tags"</span>: <span class="s">"categorias"</span>, <span class="s">"extras"</span>: [<span class="s">"preco"</span>] }
+
+<span class="k">node</span> importadores/importar-json.mjs catalogo.json --config mapas/catalogo.json --simular
+<span class="k">node</span> importadores/importar-json.mjs catalogo.json --config mapas/catalogo.json
+<span class="c"># criados: 340 · pulados (já existiam): 0</span>
+<span class="k">node</span> importadores/importar-csv.mjs produtos.csv --config mapas/catalogo.json
+<span class="k">node</span> importadores/importar-pasta.mjs ~/Documentos/notas --prefixo notas</pre>
+  </div></div>
+
+  <div class="step"><div class="b">7</div><div>
+    <h3>Exportar a wiki para o site</h3>
+    <p>Um JSON com páginas, frontmatter, links <code>[[slug]]</code>, links quebrados e páginas órfãs. Serve busca externa, site estático ou painel.</p>
+<pre><span class="k">node</span> importadores/exportar-wiki.mjs --saida wiki.json
+<span class="c"># exportado: 4 páginas, 8 links → wiki.json</span></pre>
+  </div></div>
+
+  <div class="step"><div class="b">8</div><div>
+    <h3>n8n e voz</h3>
+    <p>Importe <code>n8n/fluxo-exemplo.json</code> (webhook → <code>/buscar</code> → resposta; token via <code>$env</code>). A voz é uma ponte por variáveis de ambiente, com modo <code>--texto</code> para testar sem microfone.</p>
+<pre><span class="k">TTS_CMD=</span><span class="s">'espeak-ng -v pt-br --stdin'</span> voz/voz.sh --texto <span class="s">"o que sabemos sobre o catálogo"</span>
+<span class="c"># [voz] pergunta: o que sabemos sobre o catálogo</span>
+<span class="c"># Encontrei 3 resultados. 1. Reunião de kickoff da fase 2. ...</span>
+
+<span class="k">GRAVAR_CMD=</span><span class="s">'arecord -d 6 -f cd -q'</span> <span class="k">STT_CMD=</span><span class="s">'whisper-cli -nt -f'</span> voz/voz.sh</pre>
+  </div></div>
+
+  <div class="step"><div class="b">9</div><div>
+    <h3>Rotina noturna com evidência</h3>
+    <p>Cron → importador → <code>POST /rotina/execucao</code>. A linha entra no topo de "Registro de execuções" em <code>rotinas/registro.md</code>: é o que o <code>/auditar</code> do kit procura. Receita completa em <code>docs/receitas.md</code>.</p>
+<pre><span class="c"># crontab</span>
+0 23 * * * /home/usuario/cerebro-integra/rotinas/importar-catalogo.sh &gt;&gt; ~/logs/importar.log 2&gt;&amp;1
+
+<span class="c"># no fim do script:</span>
+<span class="k">curl</span> -X POST <span class="s">http://127.0.0.1:4650/rotina/execucao</span> -H <span class="s">"Authorization: Bearer $CEREBRO_TOKEN"</span> \
+  -H <span class="s">'Content-Type: application/json'</span> -d <span class="s">'{"id":"importar-catalogo","resultado":"ok","saida":"12 notas novas"}'</span></pre>
+  </div></div>
+</div></section>
+
+<section id="exemplos"><div class="wrap">
+  <span class="chip">Exemplos</span>
+  <h2>O que a API e o bot devolvem</h2>
+  <p class="sub">Saídas reais, geradas a partir do cérebro de exemplo em <code>test/fixture/</code>.</p>
+  <div class="grid g2">
+    <div class="card"><h3>GET /buscar?q=catalogo&amp;limite=2</h3>
+<pre>{
+  <span class="s">"consulta"</span>: <span class="s">"catalogo"</span>,
+  <span class="s">"total"</span>: 2,
+  <span class="s">"resultados"</span>: [
+    { <span class="s">"caminho"</span>: <span class="s">"contexto/sobre-o-trabalho.md"</span>,
+      <span class="s">"titulo"</span>: <span class="s">"Sobre o trabalho"</span>, <span class="s">"pontos"</span>: 4,
+      <span class="s">"trecho"</span>: <span class="s">"...um catálogo de produtos artesanais..."</span> },
+    { <span class="s">"caminho"</span>: <span class="s">"fontes/2026-08-18-reuniao-kickoff-fase-2.md"</span>,
+      <span class="s">"titulo"</span>: <span class="s">"Reunião de kickoff da fase 2"</span>, <span class="s">"pontos"</span>: 4,
+      <span class="s">"trecho"</span>: <span class="s">"...cobre o catálogo de produtos..."</span> }
+  ]
+}</pre></div>
+    <div class="card"><h3>Bot: /prioridades e /rotina</h3>
+<pre><span class="c">você:</span> /prioridades
+<span class="c">bot:</span>  Prioridades:
+      1. Entregar a fase 2 do [[projeto-alfa]] até o fim do trimestre.
+      2. Organizar o catálogo de produtos da [[empresa-x]] em uma base consultável.
+      3. Reduzir o tempo de resposta a clientes para menos de um dia útil.
+
+<span class="c">você:</span> /rotina importar-catalogo ok 12 notas novas
+<span class="c">bot:</span>  Execução registrada: importar-catalogo · ok · 2026-09-07 23:00
+
+<span class="c">você:</span> /decisao a | b
+<span class="c">bot:</span>  Escrita desligada. Suba o bot com CEREBRO_ESCRITA=1 para registrar.</pre></div>
+  </div>
+  <div class="tabela" style="margin-top:28px">
+    <table>
+      <tr><th>Rota</th><th>Faz</th><th>Exige</th></tr>
+      <tr><td><code>GET /saude</code></td><td>versão, cérebro, flags, lista de rotas</td><td>nada (aberta para monitoramento)</td></tr>
+      <tr><td><code>GET /contexto</code> · <code>/prioridades</code></td><td>sobre-mim, trabalho, prioridades, mapa de rotas</td><td>token, se configurado</td></tr>
+      <tr><td><code>GET /buscar?q=&amp;limite=&amp;pasta=</code></td><td>busca em todos os .md/.txt</td><td>token</td></tr>
+      <tr><td><code>GET /pagina?caminho=</code></td><td>um arquivo, com frontmatter; bloqueia traversal</td><td>token</td></tr>
+      <tr><td><code>GET /projetos</code> · <code>/conexoes</code> · <code>/rotinas</code></td><td>tabelas do kit como JSON</td><td>token</td></tr>
+      <tr><td><code>POST /decisao</code> · <code>/fonte</code> · <code>/rotina/execucao</code></td><td>anexa em decisoes/, fontes/, rotinas/</td><td>token + <code>CEREBRO_ESCRITA=1</code></td></tr>
+    </table>
+  </div>
+</div></section>
+
+<section id="roadmap"><div class="wrap">
+  <span class="chip">Roadmap</span>
+  <h2>O que existe e o que vem depois</h2>
+  <p class="sub">A versão 1.0.0 cobre os cinco canais. As próximas ideias são pequenas e só entram quando alguém precisar de verdade.</p>
+  <div class="phase"><div class="tag">1.0.0</div><div class="d"><strong>Entregue: API, Telegram, importadores, n8n, voz</strong><span>Núcleo com leitura segura e escrita anexada, 73 testes, documentação completa em português (README, INSTALAR, docs/ com API rota a rota, três receitas).</span></div></div>
+  <div class="phase"><div class="tag">Depois</div><div class="d"><strong>Webhook como alternativa ao polling no Telegram</strong><span>Para quem já tem HTTPS e quer latência menor. O handler já é separado do transporte; falta só o servidor.</span></div></div>
+  <div class="phase"><div class="tag">Depois</div><div class="d"><strong>Importador de e-mail (mbox/IMAP) e de calendário (ics)</strong><span>Mesmo padrão dos importadores atuais: uma nota por item em fontes/, idempotente, com mapa de campos.</span></div></div>
+  <div class="phase"><div class="tag">Ideia</div><div class="d"><strong>Servidor MCP em cima do núcleo</strong><span>Expor buscar/pagina/prioridades como ferramentas MCP para qualquer agente, reaproveitando lib/cerebro.mjs sem duplicar regras.</span></div></div>
+</div></section>
+
+<footer>
+  <div class="wrap">
+    <div class="pill">Node.js 20+</div><div class="pill">ESM · zero dependências</div><div class="pill">node --test</div><div class="pill">Telegram Bot API</div><div class="pill">n8n</div>
+    <p style="margin-top:18px">cerebro-integra · MIT · construído sobre o <a href="https://github.com/inematds/astra-2cerebro">astra-2cerebro</a> ·
+      <a href="https://github.com/inematds/cerebro-integra">inematds/cerebro-integra</a> ·
+      <a href="https://inema.club">INEMA.CLUB</a></p>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var KEY='cerebro-integra-theme';
+    var b=document.body, t=document.getElementById('themeToggle');
+    if(localStorage.getItem(KEY)==='light'){ b.classList.add('light'); t.textContent='☀️'; }
+    t.addEventListener('click',function(){
+      var light=b.classList.toggle('light');
+      t.textContent=light?'☀️':'🌙';
+      localStorage.setItem(KEY, light?'light':'dark');
+    });
+  })();
+</script>
+</body>
+</html>

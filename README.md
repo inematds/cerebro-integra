@@ -50,7 +50,9 @@ Sem uma ponte, cada uma dessas integrações vira um script improvisado que lê 
 | n8n | `n8n/fluxo-exemplo.json` | Workflow pronto: webhook → `/buscar` → resposta. |
 | Voz | `voz/voz.sh` | STT configurável → cérebro → TTS configurável. Modo `--texto` para testar sem áudio. |
 
-Guia visual: **https://inematds.github.io/cerebro-integra/guia/**
+## 📖 Guia de uso
+
+Guia completo (landing + passo a passo): **https://inematds.github.io/cerebro-integra/guia/**
 
 ## Instalação em 1 minuto
 
