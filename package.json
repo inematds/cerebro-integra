@@ -1,0 +1,22 @@
+{
+  "name": "cerebro-integra",
+  "version": "1.0.0",
+  "description": "Kit de integração do segundo cérebro (astra-2cerebro) com Telegram, API HTTP local, importadores, n8n e voz. Sem dependências.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "api": "node api/servidor.mjs",
+    "bot": "node telegram/bot.mjs",
+    "test": "node --test test/*.test.mjs",
+    "exportar-wiki": "node importadores/exportar-wiki.mjs"
+  },
+  "license": "MIT",
+  "author": "inematds",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/inematds/cerebro-integra"
+  }
+}

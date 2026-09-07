@@ -1,0 +1,75 @@
+{
+  "name": "Cérebro: buscar via webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cerebro-buscar",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "cerebro-buscar"
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.CEREBRO_API || 'http://127.0.0.1:4650' }}/buscar",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "q", "value": "={{ $json.body.q || $json.query.q || '' }}" },
+            { "name": "limite", "value": "={{ $json.body.limite || 5 }}" }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.CEREBRO_TOKEN }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-0002-4000-8000-000000000002",
+      "name": "Buscar no cérebro",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Reduz a resposta da API a uma lista simples para quem chamou o webhook.\nconst r = $input.first().json;\nconst itens = (r.resultados || []).map((x) => ({ titulo: x.titulo, caminho: x.caminho, trecho: x.trecho }));\nreturn [{ json: { consulta: r.consulta, total: r.total, itens } }];"
+      },
+      "id": "a1b2c3d4-0003-4000-8000-000000000003",
+      "name": "Formatar resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [520, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0004-4000-8000-000000000004",
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [780, 0]
+    }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "Buscar no cérebro", "type": "main", "index": 0 }]] },
+    "Buscar no cérebro": { "main": [[{ "node": "Formatar resposta", "type": "main", "index": 0 }]] },
+    "Formatar resposta": { "main": [[{ "node": "Responder", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "meta": {
+    "descricao": "Gatilho webhook POST {q, limite} → GET /buscar na API local do cérebro → resposta JSON. Defina CEREBRO_API e CEREBRO_TOKEN no ambiente do n8n."
+  }
+}
