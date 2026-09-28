@@ -1,5 +1,7 @@
 # cerebro-integra
 
+**🇧🇷 [Português](README.md) · 🇺🇸 [English](README.en.md) · 🇪🇸 [Español](README.es.md)**
+
 **Kit de integração do segundo cérebro.** Liga uma pasta de Markdown criada pelo [astra-2cerebro](https://github.com/inematds/astra-2cerebro) aos sistemas que você já tem: um bot de Telegram, um site ou app (API HTTP local), bancos e catálogos (importadores), automações (n8n) e voz.
 
 Node.js 20 ou superior. **Zero dependências npm.** Tudo em português do Brasil.
